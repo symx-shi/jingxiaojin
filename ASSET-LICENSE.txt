@@ -1,0 +1,29 @@
+﻿鲸鱼娘桌宠素材来源与许可
+
+上游项目：https://github.com/PC2005-cloud/dsh-pet
+参考改造项目：https://github.com/qinliql/DeepSeekPet
+素材取自：dsh-pet/assets/preview/daiji-huxi-xiuxian.gif
+上游提交：fb38ce620576f5ed3735a99536d2b1a4a9eb313f
+
+角色为社区二创 DeepSeek 大肥鱼/鲸鱼娘，非 DeepSeek 官方形象或官方产品。
+角色原型“溟月”：上善无形 https://space.bilibili.com/4456176
+女仆鲸鱼娘设计：ZipZipPipe https://space.bilibili.com/4168597
+
+根据上游 README 的素材授权声明：CC BY-NC-SA 4.0
+https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hans
+完整许可：https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode
+署名、非商业、相同方式共享。不得将本素材或包含其形象的产品用于商业化。
+对修改后素材的分享同样采用 CC BY-NC-SA 4.0。
+公开分享本改版时须保留上游 GitHub 地址及上述署名、许可与修改说明。
+
+本版修改：从上游预览 GIF 每两帧抽一帧，裁切空白，移除绿色背景，转换为60张透明 PNG；动画内嵌 EXE。
+仅复用角色动画素材，金价接口与 C# WPF 窗口逻辑为本工具实现。
+上游代码 MIT 许可不覆盖角色与动画的独立素材许可。
+动作升级使用同一上游和相同 CC BY-NC-SA 4.0 素材许可：
+gongzuozhuangtai-queyue-qingzhu.gif（上涨庆祝）
+gongzuozhuangtai-chuitou-tanqi-maohan.gif（下跌叹气）
+dianji-huiying-naoyang-gegexiao.gif（摸头）
+shuijiao-xunhuan.gif（睡觉）
+gongzuozhuangtai-sikao-maopao.gif（断网/状态未知）
+以及原 daiji-huxi-xiuxian.gif（待机）。
+每套均抽取60帧，裁切为120×124透明PNG、移除绿色背景，内嵌 EXE。作者、来源与非商业相同方式共享要求同上。

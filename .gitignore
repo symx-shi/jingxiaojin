@@ -1,0 +1,13 @@
+bin/
+obj/
+.vs/
+.idea/
+*.user
+*.suo
+*.log
+*.tmp
+*.exe
+*.pdb
+.env
+.env.*
+!.env.example
