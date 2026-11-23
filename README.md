@@ -1,48 +1,62 @@
-# 鲸小金
+﻿# 鲸小金
 
-Windows 桌面金价小工具，桌宠名叫“小金”。使用 C#、WPF 和 .NET Framework 编写，默认置顶显示角色与人民币/克报价，双击打开行情详情。
+小金陪你看国际金价。C# / WPF 桌宠，Windows 10/11 x64，当前版本 **v1.2.2**。
 
 ## 功能
 
-- 国际现货黄金与在岸人民币汇率，约每 15 秒刷新。
-- 悬停查看涨跌、日内最高最低和迷你曲线。
-- 详情支持日内/近一小时走势图，鼠标查看最近真实报价点。
-- 独立待机、涨跌、摸头、睡觉与连接异常动画。
-- 一次性价格提醒、提醒记录、安静模式、大小设置、边缘吸附和可选登录自启。
-- 图标和动画内嵌 EXE，可复制到另一台 Windows 电脑使用。
+- 默认置顶的小号动态桌宠，头顶仅显示人民币/克价格。
+- 单击摸头，双击行情详情；涨跌、休市推测和连接异常使用独立动画。
+- 悬停速览包含涨跌、日内高低和迷你曲线；完整详情支持鼠标查看指定时间附近的真实报价。
+- 一次性价格提醒、提醒记录、安静模式、大小设置、屏幕边缘吸附和可选登录自启。
+- 详情独立最小化或关闭，平时桌宠不占任务栏。
 
-## 构建
+## 两种发行方式
 
-适用 Windows 10/11 x64。用 Visual Studio 2022 打开 `WhaleGold.csproj`，安装“.NET 桌面开发”工作负载及 .NET Framework 4.8 开发工具包，然后选择 Release 构建。
+- `鲸小金-v1.2.2-便携版.exe`：双击即可运行，动画与图标已内嵌。
+- `鲸小金-v1.2.2-安装版.exe`：安装向导，支持选择父目录并自动追加 `jingxiaojin`，例如 `D:\soft\jingxiaojin`；提供开始菜单、可选桌面快捷方式、安装后启动和卸载入口。
 
-也可以在具备上述工具的开发者终端执行：
+安装器使用 NSIS，不再使用旧 MSI 的长时间文件校验流程。旧 MSI 用户先退出并卸载旧版，再安装新版；检测到旧 MSI 登记时会提示。
+
+需要 .NET Framework 4.8 和联网。当前程序与安装包未做代码签名。Release 建议同时提供 ZIP、素材许可与 SHA256 校验文件。
+
+## 源码与构建
+
+`src/GoldWidget.cs`：行情、换算、详情与图表；`src/PetWindow.cs`：角色互动、状态和设置。
+
+使用 Visual Studio 2022 的 .NET 桌面开发工作负载及 .NET Framework 4.8 开发工具包打开 `WhaleGold.csproj`，或：
 
 ```powershell
 dotnet build WhaleGold.csproj -c Release
 ```
 
-输出位于 `bin/Release/net48/鲸小金.exe`。首次运行目标电脑需要 .NET Framework 4.8。此仓库新增的项目文件尚未实际构建验证；之前的交付 EXE 使用本机 .NET Framework C# 编译器生成。
+输出为 `bin/Release/net48/鲸小金.exe`。本次发行 EXE 使用 Windows .NET Framework 自带 C# 编译器编译，SDK 项目文件尚未实际构建验证。
 
-## 报价说明
+安装包使用官方 [NSIS](https://nsis.sourceforge.io/Download) 3.11（可使用便携 ZIP）：
 
-数据来自新浪财经公开接口，不保证交易所级实时性或接口长期可用。
+```powershell
+.\packaging\Build-Setup.ps1 -Executable '.\bin\Release\net48\鲸小金.exe' -AssetLicense '.\ASSET-LICENSE.txt' -MakeNsis 'C:\tools\nsis\makensis.exe' -OutputDirectory '.\dist'
+```
+
+`packaging/WhaleGold.nsi` 为当前安装脚本；`Build-Installer.ps1` 仅保留作旧 MSI 维护参考。
+
+## 数据与报价口径
+
+数据来自新浪财经公开接口，约15秒请求报价、60秒请求分钟历史，不保证交易所级实时性及接口长期可用。
 
 人民币/克 = 美元/金衡盎司 × 在岸 USD/CNY 买入报价 ÷ 31.1034768。
 
-涨跌、昨收、曲线和日内高低均使用当前汇率折算，不含历史汇率变化、手续费和品牌溢价，不是金饰零售价。“较昨收”指相对上一个交易日黄金收盘价的变化。
+涨跌、昨收、曲线和日内高低均按当前汇率折算，不含历史汇率变化和品牌溢价，不是金饰售价。黄金与汇率时效分别判断；沿用旧汇率时暂停价格提醒。周末睡觉只是基于时间和报价停更推测可能休市，并非官方交易日历。
 
-黄金与汇率时效分别判断；汇率过期会提示沿用旧汇率并暂停价格提醒。周末睡觉只是根据时间和停更状态推测可能休市，并非交易所官方状态。
+设置、缓存、日志和提醒记录保存在 `%LOCALAPPDATA%\GoldWidgetRMB`，无需账户或密钥。卸载保留用户数据，只移除已知程序文件；登录自启项仅在指向被卸载程序时移除。
 
-## 本地数据
+## 验证
 
-设置、位置、缓存、提醒记录和日志保存在 `%LOCALAPPDATA%\GoldWidgetRMB`，不在仓库内。不需要账户或 API 密钥。
-
-自启由用户主动开启，使用当前用户的 `Software\Microsoft\Windows\CurrentVersion\Run` 下 `GoldWidgetRMB` 项。移动 EXE 后需要重新设置；删除程序前建议先关闭自启。
+已验证主程序交互、在线报价、行情曲线、提醒记录和设置；轻量安装器已在本机 D 盘验证安装、运行中卸载、文件及卸载登记清理和用户设置保留。旧 MSI 卸载约27秒，新安装器几轮约0.4～10.5秒，耗时随环境变化。未在另一台电脑或混合 DPI 多显示器环境验证；未编写自动化测试代码。
 
 ## 素材来源与许可
 
-角色和动画来自 **[PC2005-cloud/dsh-pet](https://github.com/PC2005-cloud/dsh-pet)**；参考项目为 [qinliql/DeepSeekPet](https://github.com/qinliql/DeepSeekPet)。本项目非 DeepSeek 官方产品。
+角色与动画来自 **[PC2005-cloud/dsh-pet](https://github.com/PC2005-cloud/dsh-pet)**，参考项目 [qinliql/DeepSeekPet](https://github.com/qinliql/DeepSeekPet)。非 DeepSeek 官方产品。
 
-角色原型“溟月”出自 [上善无形](https://space.bilibili.com/4456176)，女仆鲸鱼娘设计出自 [ZipZipPipe](https://space.bilibili.com/4168597)。角色素材按上游声明采用 **CC BY-NC-SA 4.0（署名、非商业、相同方式共享）**。本项目对 GIF 抽帧、裁切、移除绿色背景，转换为透明 PNG。发布、分发或再次修改时请保留署名与上游地址。
+原型“溟月”来自 [上善无形](https://space.bilibili.com/4456176)，女仆鲸鱼娘设计来自 [ZipZipPipe](https://space.bilibili.com/4168597)。按上游声明采用 **CC BY-NC-SA 4.0：署名、非商业、相同方式共享**。本项目对 GIF 抽帧、裁切、去绿背景，转换为透明 PNG 并内嵌 EXE。
 
-详见 [ASSET-LICENSE.txt](ASSET-LICENSE.txt)。不能将上游代码的 MIT 许可理解为角色素材可自由商用。本仓库暂未另行指定应用代码许可证。
+分发和修改时保留作者、上游链接及许可，详见 [ASSET-LICENSE.txt](ASSET-LICENSE.txt)。上游代码 MIT 许可不覆盖角色素材；本仓库未另行指定应用代码许可证。

@@ -21,7 +21,7 @@ using Drawing = System.Drawing;
 [assembly: System.Reflection.AssemblyTitle("鲸小金")]
 [assembly: System.Reflection.AssemblyProduct("鲸小金")]
 [assembly: System.Reflection.AssemblyDescription("小金陪你看国际金价 · 人民币每克")]
-[assembly: System.Reflection.AssemblyVersion("1.2.0.0")]
+[assembly: System.Reflection.AssemblyVersion("1.2.2.0")]
 
 namespace GoldWidget
 {
@@ -546,24 +546,63 @@ namespace GoldWidget
 
         // A single instance avoids concurrent refresh loops and cache writers.
         [STAThread]
-        public static void Main()
+        public static int Main(string[] args)
         {
+            if (args.Length == 1 && args[0] == "--shutdown-for-maintenance") { return ShutdownForMaintenance(); }
             using (var mutex = new Mutex(false, "Local\\GoldWidget_RMB_Native"))
             {
                 bool acquired;
                 try { acquired = mutex.WaitOne(0); } catch (AbandonedMutexException) { acquired = true; }
-                if (!acquired) { MessageBox.Show("鲸小金已在运行，请从任务栏或系统托盘恢复。", "鲸小金"); return; }
+                if (!acquired) { MessageBox.Show("鲸小金已在运行，请从任务栏或系统托盘恢复。", "鲸小金"); return 0; }
                 try
                 {
                     var app = new App { ShutdownMode = ShutdownMode.OnExplicitShutdown };
                     var data = new MainWindow();
                     var pet = new PetWindow(data);
-                    data.Show(); data.Hide();
-                    app.Run(pet);
+                    // Path-specific signal: uninstalling one copy must not close a different portable copy.
+                    using (var shutdown = new EventWaitHandle(false, EventResetMode.AutoReset, ShutdownEventName))
+                    {
+                        var listener = ThreadPool.RegisterWaitForSingleObject(shutdown, (state, timedOut) => {
+                            app.Dispatcher.BeginInvoke(new Action(() => pet.Close()));
+                        }, null, Timeout.Infinite, true);
+                        try { data.Show(); data.Hide(); app.Run(pet); }
+                        finally { listener.Unregister(null); }
+                    }
                 }
-                catch (Exception ex) { MessageBox.Show("启动失败：" + ex.Message, "鲸小金"); }
+                catch (Exception ex) { MessageBox.Show("启动失败：" + ex.Message, "鲸小金"); return 1; }
                 finally { mutex.ReleaseMutex(); }
             }
+            return 0;
+        }
+
+        private static string ShutdownEventName
+        {
+            get
+            {
+                string path = System.Reflection.Assembly.GetExecutingAssembly().Location.ToUpperInvariant();
+                using (var hash = System.Security.Cryptography.SHA256.Create())
+                {
+                    return "Local\\WhaleGoldShutdown_" + BitConverter.ToString(hash.ComputeHash(System.Text.Encoding.UTF8.GetBytes(path))).Replace("-", "");
+                }
+            }
+        }
+
+        // Run before MSI file validation. Saving state and disposing the tray follows the ordinary close path.
+        private static int ShutdownForMaintenance()
+        {
+            try
+            {
+                using (var signal = EventWaitHandle.OpenExisting(ShutdownEventName)) { signal.Set(); }
+                using (var mutex = Mutex.OpenExisting("Local\\GoldWidget_RMB_Native"))
+                {
+                    bool acquired;
+                    try { acquired = mutex.WaitOne(10000); } catch (AbandonedMutexException) { acquired = true; }
+                    if (!acquired) { return 1; }
+                    mutex.ReleaseMutex();
+                }
+            }
+            catch (WaitHandleCannotBeOpenedException) { return 0; }
+            return 0;
         }
     }
 }
